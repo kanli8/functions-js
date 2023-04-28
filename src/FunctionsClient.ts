@@ -89,26 +89,44 @@ export class FunctionsClient {
         throw new FunctionsFetchError(fetchError)
       })
 
-      const isRelayError = response.headers.get('x-relay-error')
+      const resObj: { [key: string]: any } = {}
+      if (response && response) {
+        Object.entries(response).forEach(([headerName, headerValue]) => {
+          resObj[headerName] = headerValue.toString()
+        })
+      }
+
+      const headersObj: { [key: string]: string } = {}
+      if (response && response.headers) {
+        Object.entries(response.headers).forEach(([headerName, headerValue]) => {
+          headersObj[headerName] = headerValue.toString()
+        })
+      }
+
+      const isRelayError = headersObj['x-relay-error']
       if (isRelayError && isRelayError === 'true') {
         throw new FunctionsRelayError(response)
       }
 
-      if (!response.ok) {
+      if (!(resObj['statusCode'] >= 200 && resObj['statusCode'] < 300)) {
         throw new FunctionsHttpError(response)
       }
 
-      let responseType = (response.headers.get('Content-Type') ?? 'text/plain').split(';')[0].trim()
+      let responseType = (headersObj['Content-Type'] ?? 'text/plain').split(';')[0].trim()
       let data: any
       if (responseType === 'application/json') {
-        data = await response.json()
+        // data = await response.json()
+        data = response
       } else if (responseType === 'application/octet-stream') {
-        data = await response.blob()
+        // data = await response.blob()
+        data = response
       } else if (responseType === 'multipart/form-data') {
-        data = await response.formData()
+        // data = await response.formData()
+        data = response
       } else {
         // default to text
-        data = await response.text()
+        // data = await response.text()
+        data = response
       }
 
       return { data, error: null }

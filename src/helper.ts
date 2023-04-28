@@ -5,7 +5,7 @@ export const resolveFetch = (customFetch?: Fetch): Fetch => {
   if (customFetch) {
     _fetch = customFetch
   } else if (typeof fetch === 'undefined') {
-    // _fetch = async (...args) => await (await import('cross-fetch')).fetch(...args)
+    _fetch = fetch as unknown as Fetch
   } else {
     _fetch = fetch
   }
